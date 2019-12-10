@@ -24,8 +24,13 @@ public class TwoWheelDemoOpMode extends OpMode {
     double encoder_change = 0.0;
     double gyro_heading_start = 0.0;
     double gyro_heading_change = 0.0;
+    double gyro_heading = 0.0;
+    double last_gyro_heading = 0.0;
+    double gyro_heading_change_at_transition = 0.0;
+    double headingLastNonZeroDelta = 0.0;
     long stage = 1;
-
+    long num_cycles = 0;
+    long gyroNumHeadingChanges = 0;
     private ElapsedTime et = null;
     private int waitForStartTime = 0;
 
@@ -45,8 +50,6 @@ public class TwoWheelDemoOpMode extends OpMode {
         et = new ElapsedTime();
         encoder_start_l = left.getCurrentPosition();
         encoder_start_r = right.getCurrentPosition();
-
-
     }
 
     public void init_loop(){
@@ -58,81 +61,63 @@ public class TwoWheelDemoOpMode extends OpMode {
     }
 
     public void loop(){
-//        if (gamepad1.a){
-//            telemetry.addData("a pressed","");
-//            left.setPower(-.5);
-//            right.setPower(-.5);
-//        } else if (gamepad1.y) {
-//            telemetry.addData("y pressed", "");
-//            left.setPower(0.5);
-//            right.setPower(0.5);
-//        } else if (gamepad1.b){
-//            telemetry.addData("b pressed", "");
-//            left.setPower(0.5);
-//            right.setPower(-0.5);
-//        } else if (gamepad1.x){
-//            telemetry.addData("x pressed", "");
-//            left.setPower(-0.5);
-//            right.setPower(0.5);
-//        } else {
-//            left.setPower(0.1);
-//            right.setPower(0.05);
-//        }
-        encoder_change = left.getCurrentPosition() - encoder_start_l;
-        gyro_heading_change = gyro_heading_start - gyro.getHeading();
+
+        last_gyro_heading = gyro_heading;
+        gyro_heading = gyro.getHeading();
+        encoder_change      = left.getCurrentPosition() - encoder_start_l;
+        gyro_heading_change = gyro_heading - gyro_heading_start;
+
+        if (0.0 != last_gyro_heading - gyro_heading) {
+            gyroNumHeadingChanges++;
+            headingLastNonZeroDelta = last_gyro_heading - gyro_heading;
+        }
         if (gyro_heading_change < -180){
             gyro_heading_change = gyro_heading_change + 360;
-        }
-        if (gyro_heading_change > 180){
+        } else if (gyro_heading_change > 180){
             gyro_heading_change = gyro_heading_change - 360;
         }
 
-
-
-        if (stage == 1 &  encoder_change > 5000)   {
+        if (stage == 1 &  encoder_change > 3000.0)   {
             stage = 2;
             gyro_heading_start = gyro.getHeading();
         }
-         else if (stage == 2 &  gyro_heading_change > 85 ){
-             stage = 1;
-             encoder_start_l = left.getCurrentPosition();
+        else if (stage == 2 &  gyro_heading_change < -15.0 ){
+            stage = 1;
+            encoder_start_l = left.getCurrentPosition();
+            gyro_heading_change_at_transition = gyro_heading_change;
         }
 
-//      auto stuff
+        //      auto stuff
         if (stage == -1) {
-         left.setPower(0.0);
-         right.setPower(0.0);
-     } else if (stage == 1) {
-         left.setPower(.5);
-         right.setPower(.5);
-     } else if (stage == 2) {
-            left.setPower(.5);
-            right.setPower(-0.5);
-
-
-
-     }
-
-
+            left.setPower(0.0);
+            right.setPower(0.0);
+        } else if (stage == 1) {
+            left.setPower(.2);
+            right.setPower(.2);
+        } else if (stage == 2) {
+            left.setPower(0.01);
+            right.setPower(-0.01);
+        }
+        // arcade drive
         //left.setPower(-gamepad1.left_stick_y + gamepad1.left_stick_x);
         //right.setPower(-gamepad1.left_stick_y - gamepad1.left_stick_x);
 
-
         backServo.setPosition(0.5 - 0.5* gamepad1.left_stick_y);
-        telemetry.addData("Left_y","%f", gamepad1.left_stick_y);
-        telemetry.addData("right_x", "%f", gamepad1.right_stick_x);
-        telemetry.addData("Press", "Y-fwd, A-rev, B-Rt, X-Lt");
-        telemetry.addData("Left Gamepad stick controls back servo","");
+        telemetry.addData("num cycles","%d", num_cycles++);
+        telemetry.addData("gyro heading num chnges:","%d", gyroNumHeadingChanges);
+//        telemetry.addData("Left_y","%f", gamepad1.left_stick_y);
+//        telemetry.addData("right_x", "%f", gamepad1.right_stick_x);
+//        telemetry.addData("Left Gamepad stick controls back servo","");
         telemetry.addData("Color","R %d  G %d  B %d", colorSensor.red(), colorSensor.green(), colorSensor.blue());
-        telemetry.addData("Heading"," %.1f", gyro.getHeading());
-        telemetry.addData("heading Change:", "%f",  gyro_heading_change);
+        telemetry.addData("Heading"," %.2f", gyro.getHeading());
+        telemetry.addData("Last Heading"," %.2f", last_gyro_heading);
+        telemetry.addData("heading Change:", "%.2f",  gyro_heading_change);
+        telemetry.addData("heading Change last trans:", "%.2f",  gyro_heading_change_at_transition);
+        telemetry.addData("heading last non zero delta:", "%.2f",  headingLastNonZeroDelta);
         telemetry.addData("Encoders","Left %d  Right %d", left.getCurrentPosition(), right.getCurrentPosition());
         telemetry.addData("Distance", " Fr %.1f  Lt %.1f  Rt %.1f  Bk %.1f  ",
                 frontDistance.getDistance(DistanceUnit.CM), leftDistance.getDistance(DistanceUnit.CM),
                 rightDistance.getDistance(DistanceUnit.CM), backDistance.getDistance(DistanceUnit.CM));
 
-
-
     }
-
 }
