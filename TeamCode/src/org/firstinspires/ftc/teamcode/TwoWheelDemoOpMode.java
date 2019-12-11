@@ -11,6 +11,8 @@ public class TwoWheelDemoOpMode extends OpMode {
 
     private DcMotor left = null;
     private DcMotor right = null;
+    private DcMotor left_intake = null;
+    private DcMotor right_intake = null;
     private GyroSensor gyro = null;
     private Servo backServo = null;
     private ColorSensor colorSensor = null;
@@ -28,11 +30,14 @@ public class TwoWheelDemoOpMode extends OpMode {
     double last_gyro_heading = 0.0;
     double gyro_heading_change_at_transition = 0.0;
     double headingLastNonZeroDelta = 0.0;
+    double left_trigger = 0.0;
+
     long stage = 1;
     long num_cycles = 0;
     long gyroNumHeadingChanges = 0;
     private ElapsedTime et = null;
     private int waitForStartTime = 0;
+
 
     public void init(){
         left = hardwareMap.dcMotor.get("left_motor");
@@ -81,31 +86,58 @@ public class TwoWheelDemoOpMode extends OpMode {
             stage = 2;
             gyro_heading_start = gyro.getHeading();
         }
-        else if (stage == 2 &  gyro_heading_change < -15.0 ){
+        else if (stage == 2 &  gyro_heading_change < -90.0 ){
             stage = 1;
             encoder_start_l = left.getCurrentPosition();
             gyro_heading_change_at_transition = gyro_heading_change;
         }
+//hook
+        if (gamepad1.a){
+            backServo.setPosition(backServo.getPosition()+.01);
+
+        } else if (gamepad1.y){
+            backServo.setPosition(backServo.getPosition()-.01);
+
+        }
+
 
         //      auto stuff
         if (stage == -1) {
-            left.setPower(0.0);
-            right.setPower(0.0);
+           left.setPower(0.0);
+         right.setPower(0.0);
         } else if (stage == 1) {
-            left.setPower(.2);
-            right.setPower(.2);
+            left.setPower(.5);
+            right.setPower(.5);
         } else if (stage == 2) {
-            left.setPower(0.01);
-            right.setPower(-0.01);
+            left.setPower(.5);
+            right.setPower(-.5);
         }
         // arcade drive
         //left.setPower(-gamepad1.left_stick_y + gamepad1.left_stick_x);
         //right.setPower(-gamepad1.left_stick_y - gamepad1.left_stick_x);
 
-        backServo.setPosition(0.5 - 0.5* gamepad1.left_stick_y);
+      //  backServo.setPosition(0.5 - 0.5* gamepad1.left_stick_y);
+
+        //Intake Motors
+        left_trigger = gamepad1.left_trigger;
+        left_intake.setPower(left_trigger);
+        right_intake.setPower(-left_trigger);
+
+        if (left_trigger == 0.0) {
+            left_intake.setPower(-gamepad1.right_trigger);
+            right_intake.setPower(gamepad1.right_trigger);
+        }
+
+
+
+
+
+
+
         telemetry.addData("num cycles","%d", num_cycles++);
         telemetry.addData("gyro heading num chnges:","%d", gyroNumHeadingChanges);
 //        telemetry.addData("Left_y","%f", gamepad1.left_stick_y);
+        telemetry.addData("Left_trigger","%f", gamepad1.left_trigger);
 //        telemetry.addData("right_x", "%f", gamepad1.right_stick_x);
 //        telemetry.addData("Left Gamepad stick controls back servo","");
         telemetry.addData("Color","R %d  G %d  B %d", colorSensor.red(), colorSensor.green(), colorSensor.blue());
