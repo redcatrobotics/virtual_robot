@@ -91,13 +91,12 @@ public class TwoWheelDemoOpMode extends OpMode {
             encoder_start_l = left.getCurrentPosition();
             gyro_heading_change_at_transition = gyro_heading_change;
         }
-//hook
+
+        //hook
         if (gamepad1.a){
             backServo.setPosition(backServo.getPosition()+.01);
-
         } else if (gamepad1.y){
             backServo.setPosition(backServo.getPosition()-.01);
-
         }
 
 
@@ -119,19 +118,15 @@ public class TwoWheelDemoOpMode extends OpMode {
       //  backServo.setPosition(0.5 - 0.5* gamepad1.left_stick_y);
 
         //Intake Motors
-        left_trigger = gamepad1.left_trigger;
-        left_intake.setPower(left_trigger);
-        right_intake.setPower(-left_trigger);
-
-        if (left_trigger == 0.0) {
-            left_intake.setPower(-gamepad1.right_trigger);
-            right_intake.setPower(gamepad1.right_trigger);
-        }
-
-
-
-
-
+        // Don't have virtual motors like this, so can't use right now!
+//        left_trigger = gamepad1.left_trigger;
+//        left_intake.setPower(left_trigger);
+//        right_intake.setPower(-left_trigger);
+//
+//        if (left_trigger == 0.0) {
+//            left_intake.setPower(-gamepad1.right_trigger);
+//            right_intake.setPower(gamepad1.right_trigger);
+//        }
 
 
         telemetry.addData("num cycles","%d", num_cycles++);

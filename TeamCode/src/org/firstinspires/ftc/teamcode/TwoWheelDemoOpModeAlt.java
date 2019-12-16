@@ -6,7 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "two wheel demo opmode Test", group = "TwoWheel")
+@TeleOp(name = "two wheel demo opmode Alt", group = "TwoWheel")
 public class TwoWheelDemoOpModeAlt extends OpMode {
 
     private DcMotor left = null;
